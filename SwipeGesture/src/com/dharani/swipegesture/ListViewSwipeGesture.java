@@ -84,6 +84,10 @@ public class ListViewSwipeGesture implements View.OnTouchListener {
     public static int Single	=	1;
     public static int Double	=	2;
     public static int Dismiss	=	3;
+	
+	// Left and Right Swipping Settings					
+	private boolean biDirectionalSwiping = false;	    // allow bidirectional swiping (swipe right)
+	private boolean swipingRight = false; 				// for when biDirectionalSwiping
 
     public ListViewSwipeGesture(ListView listView,TouchCallbacks Callbacks,Activity context){
         ViewConfiguration vc    =   ViewConfiguration.get(listView.getContext());
@@ -274,7 +278,6 @@ public class ListViewSwipeGesture implements View.OnTouchListener {
                 float absVelocityX          =   Math.abs(velocityX);
                 float absVelocityY          =   Math.abs(mVelocityTracker.getYVelocity());
                 boolean swipe               =   false;
-                boolean swipeRight          =   false;
 
                 if (Math.abs(deltaX) > tempwidth) {
                     swipe               =   true;
@@ -286,14 +289,15 @@ public class ListViewSwipeGesture implements View.OnTouchListener {
                     swipeRight          = mVelocityTracker.getXVelocity() > 0;
                 }
 
-                if (deltaX < 0 && swipe) {
+                if ((deltaX < 0 && swipe) || (swipe && biDirectionalSwiping)) {
                     mListView.setDrawSelectorOnTop(false);
-
                     if (swipe && !swipeRight && deltaX <= -tempwidth) {
-                        FullSwipeTrigger();
-                    } else if (deltaX >= -textwidth && SwipeType==Double) {
+                        FullSwipeTrigger(true);
+                    } else if (swipe && swipeRight && biDirectionalSwiping && -deltaX <= tempwidth) {
+						FullSwipeTrigger(false);
+				    } else if (deltaX >= -textwidth && SwipeType==Double) {
                         ResetListItem(mDownView);
-                    }else {
+                    } else {
                         ResetListItem(mDownView);
                     }
                 } else {
@@ -417,7 +421,7 @@ public class ListViewSwipeGesture implements View.OnTouchListener {
 
     }
 
-    private void FullSwipeTrigger(){
+    private void FullSwipeTrigger(boolean moveLeft){
         Log.d("FUll Swipe trigger call","Works**********************"+mDismissAnimationRefCount);
         old_mDownView	=	mDownView;
         int width;
@@ -429,7 +433,7 @@ public class ListViewSwipeGesture implements View.OnTouchListener {
         else{
             width	=	largewidth;
         }
-        mDownView.animate().translationX(-width).setDuration(300)
+        mDownView.animate().translationX(moveLeft ? -width : width).setDuration(300)
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(
