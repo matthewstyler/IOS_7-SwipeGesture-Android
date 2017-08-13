@@ -85,9 +85,13 @@ public class ListViewSwipeGesture implements View.OnTouchListener {
     public static int Double	=	2;
     public static int Dismiss	=	3;
 	
-	// Left and Right Swipping Settings					
-	private boolean biDirectionalSwiping = false;	    // allow bidirectional swiping (swipe right)
-	private boolean swipingRight = false; 				// for when biDirectionalSwiping
+    // Left and Right Swipping Settings					
+    private boolean biDirectionalSwiping = false;	    // allow bidirectional swiping (swipe right)
+    private boolean swipingRight = false; 		    // for when biDirectionalSwiping
+
+    // Sensitivity thresholds
+    private int leftSensitivity = 500;
+    private int rightSensitivity = 300; 
 
     public ListViewSwipeGesture(ListView listView,TouchCallbacks Callbacks,Activity context){
         ViewConfiguration vc    =   ViewConfiguration.get(listView.getContext());
@@ -220,6 +224,18 @@ public class ListViewSwipeGesture implements View.OnTouchListener {
                 if (mPaused) {
                     return false;
                 }
+		
+		// sensitivity
+		float deltaX = event.getRawX() - mDownX;
+		boolean left = deltaX < 0;
+		if (left && Math.abs(deltaX) < leftSensitivity || (!left && Math.abs(deltaX) < rightSensitivity)) {
+		    if (old_mDownView != null) {
+		        ResetListItem(old_mDownView);
+		        old_mDownView = null;
+		    }
+		    return false;
+		}
+		    		    
                 Rect rect               =   new Rect();
                 int childCount          =   mListView.getChildCount();
                 int[] listViewCoords    = new int[2];
@@ -564,5 +580,39 @@ public class ListViewSwipeGesture implements View.OnTouchListener {
 
     }
 
-
+   /**
+    * Get the deltaX required to trigger a left swipe
+    * 
+    * @return the deltaX
+    */	
+    public int getLeftSensitivity() {
+        return leftSensitvity;	    
+    }
+	 
+   /**
+    * Set the deltaX required to trigger a left swipe
+    * 
+    * @param leftSensitvity the deltaX
+    */
+    public void setLeftSensitivity(int leftSensitvity) {
+	this.leftSensitvity = leftSensitvity;
+    }
+	
+   /**
+    * Get the deltaX required to trigger a right swipe
+    * 
+    * @return the deltaX
+    */		
+    public int getRightSensitivity() {
+        return rightSensitivity;	    
+    }
+	
+   /**
+    * Set the deltaX required to trigger a right swipe
+    * 
+    * @param rightSensitivity the deltaX
+    */
+    public void setRightSensitivity(int rightSensitivity) {
+	this.rightSensitivity = rightSensitivity;
+    }	
 }
